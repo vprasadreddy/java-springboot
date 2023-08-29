@@ -1,39 +1,36 @@
-pipeline {
+pipeline{
     agent any
+    environment {     
+    DOCKERHUB_CREDENTIALS= credentials('docker-hub-credential') 
+}
     tools{
-        maven 'maven_3_5_0'
+        maven 'maven'
     }
     stages{
         stage('Build Maven'){
             steps{
-                checkout([$class: 'GitSCM', branches: [[name: '*/main']], extensions: [], userRemoteConfigs: [[url: 'https://github.com/Java-Techie-jt/devops-automation']]])
+                checkout scmGit(branches: [[name: '*/main']], extensions: [], userRemoteConfigs: [[url: 'https://github.com/vprasadreddy/java-springboot.git']])
                 sh 'mvn clean install'
             }
         }
-        stage('Build docker image'){
+        stage('build docker image'){
             steps{
-                script{
-                    sh 'docker build -t javatechie/devops-integration .'
-                }
-            }
+            sh 'docker build -t prasadreddy2349/devops-integration:latest .'
         }
-        stage('Push image to Hub'){
-            steps{
-                script{
-                   withCredentials([string(credentialsId: 'dockerhub-pwd', variable: 'dockerhubpwd')]) {
-                   sh 'docker login -u javatechie -p ${dockerhubpwd}'
+        }
 
-}
-                   sh 'docker push javatechie/devops-integration'
-                }
-            }
-        }
-        stage('Deploy to k8s'){
+        
+        stage('Push docker image'){
             steps{
-                script{
-                    kubernetesDeploy (configs: 'deploymentservice.yaml',kubeconfigId: 'k8sconfigpwd')
-                }
-            }
+                    sh 'echo $DOCKERHUB_CREDENTIALS_PSW | docker login -u $DOCKERHUB_CREDENTIALS_USR --password-stdin'
+                    echo 'Login successful'
+                    sh 'docker push prasadreddy2349/devops-integration:latest'
         }
     }
+}
+  post{
+    always {  
+      sh 'docker logout'           
+    }      
+  } 
 }
