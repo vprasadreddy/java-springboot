@@ -13,6 +13,17 @@ pipeline{
                 sh 'mvn clean install'
             }
         }
+  stage('SonarQube analysis') {
+    environment{
+        scannerHome = tool 'sonarqube-scanner'
+    }
+    steps{
+    //def scannerHome = tool 'sonarqube-scanner';
+    withSonarQubeEnv('sonarqube-cloud-server') { // If you have configured more than one global server connection, you can specify its name
+      sh "${scannerHome}/bin/sonar-scanner"
+    }
+    }
+  }
         stage('build docker image'){
             steps{
             sh 'docker build -t prasadreddy2349/devops-integration:latest .'
