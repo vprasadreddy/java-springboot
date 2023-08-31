@@ -18,8 +18,6 @@ pipeline{
             sh 'docker build -t prasadreddy2349/devops-integration:latest .'
         }
         }
-
-        
         stage('Push docker image'){
             steps{
                     sh 'echo $DOCKERHUB_CREDENTIALS_PSW | docker login -u $DOCKERHUB_CREDENTIALS_USR --password-stdin'
